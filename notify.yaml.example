@@ -1,0 +1,34 @@
+notify:
+  policies:
+    dedupe:
+      ttl: 3600
+      levels: ["fatal", "error"]
+      upgrade_after: 10
+    cooldown:
+      ttl: 21600
+      levels: ["fatal"]
+    rate_limit:
+      per_minute: 30
+      levels: ["fatal", "error", "warn"]
+    aggregate:
+      window: 3600
+      levels: ["warn"]
+
+  channels:
+    - type: webhook
+      name: ops
+      url: "${WEBHOOK_URL}"
+
+    - type: telegram
+      token: "${TG_TOKEN}"
+      chat_id: "${TG_CHAT_ID}"
+
+    - type: wecom
+      webhook: "${WECOM_WEBHOOK}"
+
+    - type: feishu
+      webhook: "${FEISHU_WEBHOOK}"
+
+    - type: bark
+      key: "${BARK_KEY}"
+      server: "https://api.day.app"
