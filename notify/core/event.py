@@ -25,7 +25,6 @@ def build_event(
     level: str = "info",
     event_key: Optional[str] = None,
     source: Optional[str] = None,
-    params: Optional[Dict[str, Any]] = None,
     context: Optional[Dict[str, Any]] = None,
     meta: Optional[Dict[str, Any]] = None,
     timestamp: Optional[str] = None,
@@ -35,8 +34,6 @@ def build_event(
     content_type = (type or "text").lower()
     key = event_key or default_event_key(normalized_level, content)
     created_at = timestamp or datetime.now(timezone.utc).isoformat()
-    if not isinstance(params, dict):
-        params = {}
     if not isinstance(context, dict):
         context = {}
     if not isinstance(meta, dict):
@@ -50,5 +47,4 @@ def build_event(
         "context": context,
         "meta": meta,
         "timestamp": created_at,
-        "params": params,
     }

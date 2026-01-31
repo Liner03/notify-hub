@@ -81,6 +81,5 @@ class AggregatePolicy(BasePolicy):
             level=level,
             event_key=f"aggregate:{level}:{source}",
             source=source,
-            params={},
             meta={"aggregate_skip": True, "aggregate_window": self.window},
         )

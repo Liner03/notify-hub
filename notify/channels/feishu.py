@@ -1,6 +1,6 @@
 import requests
 
-from notify.channels.base import BaseNotifier
+from notify.channels.base import BaseNotifier, REQUIRED
 from notify.core.models import ChannelResult
 
 
@@ -8,13 +8,26 @@ class FeishuNotifier(BaseNotifier):
     type_name = "feishu"
     supported_types = {"text", "markdown"}
 
-    def __init__(self, webhook: str, name=None, timeout: int = 10) -> None:
-        super().__init__(name=name)
-        self.webhook = webhook
-        self.timeout = timeout
+    @classmethod
+    def config(cls) -> dict:
+        cfg = super().config()
+        cfg.update(
+            {
+                "webhook": REQUIRED,
+                "extra": {},
+            }
+        )
+        return cfg
 
     def send(self, event: dict) -> ChannelResult:
+        webhook = self.cfg.get("webhook")
+        if not webhook:
+            return ChannelResult(False, "missing webhook")
+        timeout = self.cfg.get("timeout", 10)
         content_type, content = self._select_content(event)
+        extra = self.cfg.get("extra")
+        if not isinstance(extra, dict):
+            extra = {}
         if content_type == "markdown":
             payload = {
                 "msg_type": "interactive",
@@ -31,9 +44,9 @@ class FeishuNotifier(BaseNotifier):
                 "content": {"text": content},
             }
 
-        payload.update(self._channel_args(event))
+        payload.update(extra)
         try:
-            response = requests.post(self.webhook, json=payload, timeout=self.timeout)
+            response = requests.post(webhook, json=payload, timeout=timeout)
             if response.status_code >= 400:
                 return ChannelResult(False, f"http {response.status_code}")
             return ChannelResult(True)

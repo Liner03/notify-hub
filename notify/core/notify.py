@@ -1,6 +1,6 @@
 from typing import Any, Dict, Iterable, List, Optional
 
-from notify.channels import BarkNotifier, FeishuNotifier, TelegramNotifier, WebhookNotifier, WeComNotifier
+from notify.channels import BarkNotifier, FeishuNotifier, TelegramNotifier, WeComNotifier
 from notify.core.config import load_config
 from notify.core.event import build_event
 from notify.core.models import DispatchResult, SendResult
@@ -38,7 +38,6 @@ class Notify:
         notify_level: str = "info",
         event_key: Optional[str] = None,
         source: Optional[str] = None,
-        **kwargs,
     ) -> SendResult:
         event = build_event(
             raw_content=raw_content,
@@ -46,7 +45,6 @@ class Notify:
             level=notify_level,
             event_key=event_key,
             source=source,
-            params=dict(kwargs),
         )
 
         results: List[DispatchResult] = []
@@ -103,7 +101,6 @@ class Notify:
 
 
 def _register_builtin_channels() -> None:
-    NotifierRegistry.register("webhook", WebhookNotifier)
     NotifierRegistry.register("telegram", TelegramNotifier)
     NotifierRegistry.register("wecom", WeComNotifier)
     NotifierRegistry.register("feishu", FeishuNotifier)
@@ -117,6 +114,9 @@ def _build_channels(channel_configs: List[Dict[str, Any]]):
         if not channel_type:
             raise ValueError("channel missing type")
         params = {k: v for k, v in item.items() if k != "type"}
+        config_overrides = params.pop("config", None)
+        if isinstance(config_overrides, dict):
+            params.update(config_overrides)
         channels.append(NotifierRegistry.create(channel_type, **params))
     if not channels:
         raise ValueError("no channels configured")
