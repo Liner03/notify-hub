@@ -1,9 +1,18 @@
+from typing import Any
 from urllib.parse import quote
 
 import requests
 
 from notify.channels.base import BaseNotifier, REQUIRED
 from notify.core.models import ChannelResult
+
+DEFAULT_BARK_SERVER = "https://api.day.app"
+EVENT_KEY_FIELD = "event_key"
+BARK_QUERY_PARAMS = (
+    "level", "volume", "badge", "url", "group", "icon", "sound",
+    "call", "autoCopy", "copy", "image", "ciphertext",
+    "isArchive", "action", "id", "delete",
+)
 
 
 class BarkNotifier(BaseNotifier):
@@ -16,7 +25,7 @@ class BarkNotifier(BaseNotifier):
         cfg.update(
             {
                 "key": REQUIRED,
-                "server": "https://api.day.app",
+                "server": DEFAULT_BARK_SERVER,
                 "title": None,
                 "subtitle": None,
                 "body": None,
@@ -46,7 +55,7 @@ class BarkNotifier(BaseNotifier):
         key = self.cfg.get("key")
         if not key:
             return ChannelResult(False, "missing key")
-        server = self.cfg.get("server") or "https://api.day.app"
+        server = self.cfg.get("server") or DEFAULT_BARK_SERVER
         server = server.rstrip("/")
         timeout = self._get_timeout()
         title = self.cfg.get("title")
@@ -59,9 +68,13 @@ class BarkNotifier(BaseNotifier):
         if content_type == "markdown":
             channel_args["markdown"] = content
 
+        # Build path components based on Bark API requirement:
+        # - If subtitle exists: /{key}/{title}/{subtitle}/{body}, title defaults to event_key
+        # - If only title exists: /{key}/{title}/{body}
+        # - Otherwise: /{key}/{body}
         if subtitle:
             if not title:
-                title = event.get("event_key")
+                title = event.get(EVENT_KEY_FIELD)
             path_parts = [key, title, subtitle, body]
         elif title:
             path_parts = [key, title, body]
@@ -79,34 +92,18 @@ class BarkNotifier(BaseNotifier):
         except Exception as exc:
             return ChannelResult(False, str(exc))
 
-    def _build_url(self, server: str, parts) -> str:
+    def _build_url(self, server: str, parts: list[str]) -> str:
         encoded_parts = [quote(str(part), safe="") for part in parts]
         return f"{server}/" + "/".join(encoded_parts)
 
-    def _build_params(self, event: dict) -> dict:
+    def _build_params(self, event: dict) -> dict[str, Any]:
         params = {}
-        for key in (
-            "level",
-            "volume",
-            "badge",
-            "url",
-            "group",
-            "icon",
-            "sound",
-            "call",
-            "autoCopy",
-            "copy",
-            "image",
-            "ciphertext",
-            "isArchive",
-            "action",
-            "id",
-            "delete",
-        ):
+        for key in BARK_QUERY_PARAMS:
             value = self.cfg.get(key)
             if value is not None and value is not REQUIRED:
                 params[key] = value
 
+        # Handle level mapping from event level to Bark-specific level
         level_map = self.cfg.get("level_map")
         if params.get("level") is None and isinstance(level_map, dict):
             mapped = level_map.get(event.get("level"))
