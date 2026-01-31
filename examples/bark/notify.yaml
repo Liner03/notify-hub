@@ -1,0 +1,8 @@
+notify:
+  channels:
+    - type: bark
+      key: "${BARK_KEY}"
+      server: "https://api.day.app"
+      title: "Notice"
+      group: "demo"
+      # timeout: 10

@@ -1,0 +1,7 @@
+notify:
+  channels:
+    - type: feishu
+      webhook: "${FEISHU_WEBHOOK}"
+      # timeout: 10
+      # extra:
+      #   sign: "${FEISHU_SIGN}"  # if you use signed webhook, depends on your setup

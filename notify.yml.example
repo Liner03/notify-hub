@@ -1,0 +1,53 @@
+# This file mirrors notify.yaml.example.
+notify:
+  # NOTE:
+  # - ${VAR} will be substituted from environment variables.
+  # - Missing env var will raise an error (fails fast).
+
+  policies:
+    dedupe:
+      ttl: 3600
+      levels: ["fatal", "error"]
+      upgrade_after: 10
+    cooldown:
+      ttl: 21600
+      levels: ["fatal"]
+    rate_limit:
+      per_minute: 30
+      levels: ["fatal", "error", "warn"]
+    aggregate:
+      window: 3600
+      levels: ["warn"]
+
+  channels:
+    - type: telegram
+      token: "${TG_TOKEN}"
+      chat_id: "${TG_CHAT_ID}"
+      # timeout: 10
+      # timeout: [3, 10]  # connect/read
+      # parse_mode: "HTML"
+      # Other sendMessage params can be placed here, but avoid setting `text`.
+
+    - type: wecom
+      corpid: "${WECOM_CORPID}"
+      corpsecret: "${WECOM_CORPSECRET}"
+      agentid: ${WECOM_AGENTID}
+      touser: "@all"
+      # timeout: 10
+      # base_url: "https://qyapi.weixin.qq.com/cgi-bin/gettoken"
+      # req_url: "https://qyapi.weixin.qq.com/cgi-bin/message/send"
+      # msgtype: textcard
+      # payload:
+      #   title: "告警"
+      #   description: "服务异常"
+      #   url: "https://example.com"
+      #   btntxt: "查看"
+
+    - type: feishu
+      webhook: "${FEISHU_WEBHOOK}"
+      # timeout: 10
+
+    - type: bark
+      key: "${BARK_KEY}"
+      server: "https://api.day.app"
+      # timeout: 10

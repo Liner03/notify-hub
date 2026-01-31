@@ -1,0 +1,16 @@
+notify:
+  channels:
+    - type: wecom
+      corpid: "${WECOM_CORPID}"
+      corpsecret: "${WECOM_CORPSECRET}"
+      agentid: ${WECOM_AGENTID}
+      touser: "@all"
+      # timeout: 10
+      # base_url: "https://qyapi.weixin.qq.com/cgi-bin/gettoken"
+      # req_url: "https://qyapi.weixin.qq.com/cgi-bin/message/send"
+      # msgtype: textcard
+      # payload:
+      #   title: "告警"
+      #   description: "服务异常"
+      #   url: "https://example.com"
+      #   btntxt: "查看"
