@@ -23,7 +23,7 @@ class FeishuNotifier(BaseNotifier):
         webhook = self.cfg.get("webhook")
         if not webhook:
             return ChannelResult(False, "missing webhook")
-        timeout = self.cfg.get("timeout", 10)
+        timeout = self._get_timeout()
         content_type, content = self._select_content(event)
         extra = self.cfg.get("extra")
         if not isinstance(extra, dict):
@@ -47,8 +47,40 @@ class FeishuNotifier(BaseNotifier):
         payload.update(extra)
         try:
             response = requests.post(webhook, json=payload, timeout=timeout)
-            if response.status_code >= 400:
-                return ChannelResult(False, f"http {response.status_code}")
-            return ChannelResult(True)
+            return self._result_from_feishu(response)
         except Exception as exc:
             return ChannelResult(False, str(exc))
+
+    def _result_from_feishu(self, response) -> ChannelResult:
+        try:
+            data = response.json()
+        except Exception:
+            return self._result_from_response(response)
+
+        if isinstance(data, dict):
+            if "code" in data:
+                code_value = data.get("code")
+            elif "StatusCode" in data:
+                code_value = data.get("StatusCode")
+            elif "errcode" in data:
+                code_value = data.get("errcode")
+            else:
+                code_value = None
+
+            if code_value is not None:
+                try:
+                    code_int = int(code_value)
+                except (TypeError, ValueError):
+                    code_int = None
+                if code_int == 0:
+                    return ChannelResult(True, "ok")
+                message = (
+                    data.get("msg")
+                    or data.get("message")
+                    or data.get("errmsg")
+                    or data.get("StatusMessage")
+                    or f"code {code_value}"
+                )
+                return ChannelResult(False, message)
+
+        return self._result_from_response(response)

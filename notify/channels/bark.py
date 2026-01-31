@@ -48,7 +48,7 @@ class BarkNotifier(BaseNotifier):
             return ChannelResult(False, "missing key")
         server = self.cfg.get("server") or "https://api.day.app"
         server = server.rstrip("/")
-        timeout = self.cfg.get("timeout", 10)
+        timeout = self._get_timeout()
         title = self.cfg.get("title")
         subtitle = self.cfg.get("subtitle")
         body = self.cfg.get("body")

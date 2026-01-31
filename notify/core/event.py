@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-import re
+import hashlib
 from typing import Any, Dict, Optional
 
 
@@ -14,9 +14,9 @@ def normalize_level(level: str) -> str:
 
 
 def default_event_key(level: str, raw_content: str) -> str:
-    safe = re.sub(r"[^a-z0-9_]+", "_", (raw_content or "").strip().lower())
-    safe = safe.strip("_") or "event"
-    return f"{level}:{safe}"
+    content = "" if raw_content is None else str(raw_content)
+    digest = hashlib.sha1(content.encode("utf-8")).hexdigest()
+    return f"{level}:{digest[:12]}"
 
 
 def build_event(

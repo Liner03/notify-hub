@@ -25,7 +25,7 @@ class TelegramNotifier(BaseNotifier):
         chat_id = self.cfg.get("chat_id")
         if not token or not chat_id:
             return ChannelResult(False, "missing token/chat_id")
-        timeout = self.cfg.get("timeout", 10)
+        timeout = self._get_timeout()
         url = f"https://api.telegram.org/bot{token}/sendMessage"
         content_type, content = self._select_content(event)
         payload = {"chat_id": chat_id, "text": content}
@@ -38,9 +38,27 @@ class TelegramNotifier(BaseNotifier):
         if parse_mode:
             payload["parse_mode"] = parse_mode
 
-        payload.update(self._extra_config({"token", "chat_id", "timeout", "parse_mode"}))
+        payload.update(self._extra_config({"token", "chat_id", "timeout", "parse_mode", "text"}))
         try:
             response = requests.post(url, json=payload, timeout=timeout)
-            return self._result_from_response(response)
+            return self._result_from_telegram(response)
         except Exception as exc:
             return ChannelResult(False, str(exc))
+
+    def _result_from_telegram(self, response) -> ChannelResult:
+        try:
+            data = response.json()
+        except Exception:
+            return self._result_from_response(response)
+
+        if isinstance(data, dict):
+            ok = data.get("ok")
+            if ok is True:
+                return ChannelResult(True, "ok")
+            if ok is False:
+                message = data.get("description")
+                if not message and "error_code" in data:
+                    message = f"error_code {data.get('error_code')}"
+                return ChannelResult(False, message or "telegram error")
+
+        return self._result_from_response(response)

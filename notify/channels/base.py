@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple, Union
 
 from notify.core.models import ChannelResult
 
@@ -35,6 +35,26 @@ class BaseNotifier:
             content = ""
         return content_type, str(content)
 
+    def _get_timeout(self, default: Union[int, float] = 10) -> Union[float, Tuple[float, float]]:
+        value = self.cfg.get("timeout", default)
+        if value is None or value is REQUIRED:
+            return float(default)
+        if isinstance(value, (int, float)):
+            return float(value)
+        if isinstance(value, str):
+            try:
+                return float(value.strip())
+            except ValueError:
+                return float(default)
+        if isinstance(value, (list, tuple)):
+            if len(value) != 2:
+                return float(default)
+            try:
+                return (float(value[0]), float(value[1]))
+            except (TypeError, ValueError):
+                return float(default)
+        return float(default)
+
     def _merge_config(self, defaults: Dict[str, Any], overrides: Dict[str, Any]) -> Dict[str, Any]:
         merged = deepcopy(defaults)
         for key, value in overrides.items():
@@ -52,13 +72,15 @@ class BaseNotifier:
 
     def _result_from_response(self, response) -> ChannelResult:
         status = getattr(response, "status_code", None)
-        text = getattr(response, "text", "")
-        message = (text or "").strip()
         if status is None:
             return ChannelResult(False, "missing status_code")
         if status >= 400:
+            text = getattr(response, "text", "")
+            message = (text or "").strip()
+            if message and len(message) > 200:
+                message = message[:200]
             return ChannelResult(False, message or f"http {status}")
-        return ChannelResult(True, message or "ok")
+        return ChannelResult(True, "ok")
 
     def _extra_config(self, exclude: set) -> Dict[str, Any]:
         extras: Dict[str, Any] = {}
