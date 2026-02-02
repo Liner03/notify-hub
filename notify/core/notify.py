@@ -1,6 +1,6 @@
 from typing import Any, Dict, Iterable, List, Optional
 
-from notify.channels import BarkNotifier, FeishuNotifier, TelegramNotifier, WeComNotifier
+from notify.channels import BarkNotifier, EmailNotifier, FeishuNotifier, TelegramNotifier, WeComNotifier
 from notify.core.config import load_config
 from notify.core.event import build_event
 from notify.core.models import DispatchResult, SendResult
@@ -105,6 +105,7 @@ def _register_builtin_channels() -> None:
     NotifierRegistry.register("wecom", WeComNotifier)
     NotifierRegistry.register("feishu", FeishuNotifier)
     NotifierRegistry.register("bark", BarkNotifier)
+    NotifierRegistry.register("email", EmailNotifier)
 
 
 def _build_channels(channel_configs: List[Dict[str, Any]]):

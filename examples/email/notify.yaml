@@ -1,0 +1,25 @@
+notify:
+  channels:
+    - type: email
+      host: "smtp.gmail.com"
+      port: 587
+      use_ssl: false  # Gmail uses STARTTLS on port 587
+      username: "${EMAIL_USERNAME}"
+      password: "${EMAIL_PASSWORD}"
+      from_addr: "sender@example.com"  # Optional, defaults to username
+      to_addrs:
+        - "recipient1@example.com"
+        - "recipient2@example.com"
+      subject: "[Notification]"  # Optional, defaults to event_key
+      # timeout: 10
+
+# For SSL (port 465):
+# notify:
+#   channels:
+#     - type: email
+#       host: "smtp.example.com"
+#       port: 465
+#       use_ssl: true  # Use SSL on port 465
+#       username: "${EMAIL_USERNAME}"
+#       password: "${EMAIL_PASSWORD}"
+#       to_addrs: "recipient@example.com"  # Can be a single string

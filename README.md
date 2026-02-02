@@ -5,7 +5,7 @@
 ## 特性
 
 - **统一接口**: 单一 API 发送到多个渠道
-- **多渠道支持**: 企业微信 / Telegram / 飞书 / Bark
+- **多渠道支持**: 企业微信 / Telegram / 飞书 / Bark / Email
 - **防爆策略**: 去重 / 冷却 / 限流 / 聚合
 - **轻量设计**: 基础内存 ~10 MB，运行时稳定在 ~3 MB
 - **环境变量**: 支持 `${VAR}` 占位符，避免硬编码密钥
@@ -84,6 +84,19 @@ Notify.send(
   server: "https://api.day.app"
 ```
 
+**Email**
+```yaml
+- type: email
+  host: "smtp.gmail.com"
+  port: 587
+  use_ssl: false          # Gmail 使用 STARTTLS
+  username: "${EMAIL_USERNAME}"
+  password: "${EMAIL_PASSWORD}"
+  to_addrs:
+    - "recipient@example.com"
+  subject: "[Alert]"      # 可选,默认使用 event_key
+```
+
 ## 支持的渠道
 
 | 渠道 | 消息类型 |
@@ -92,6 +105,7 @@ Notify.send(
 | 企业微信 | `text` / `markdown` / `image` / `news` / `file` / `textcard` 等 |
 | 飞书 | `text` / `markdown` |
 | Bark | `text` / `markdown` |
+| Email | `text` / `html` |
 
 ## 策略配置
 
