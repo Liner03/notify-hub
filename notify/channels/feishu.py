@@ -48,8 +48,12 @@ class FeishuNotifier(BaseNotifier):
         try:
             response = requests.post(webhook, json=payload, timeout=timeout)
             return self._result_from_feishu(response)
+        except requests.exceptions.Timeout:
+            return ChannelResult(False, "send timeout")
+        except requests.exceptions.ConnectionError:
+            return ChannelResult(False, "send connection failed")
         except Exception as exc:
-            return ChannelResult(False, str(exc))
+            return ChannelResult(False, f"send failed: {type(exc).__name__}")
 
     def _result_from_feishu(self, response) -> ChannelResult:
         try:

@@ -42,8 +42,12 @@ class TelegramNotifier(BaseNotifier):
         try:
             response = requests.post(url, json=payload, timeout=timeout)
             return self._result_from_telegram(response)
+        except requests.exceptions.Timeout:
+            return ChannelResult(False, "send timeout")
+        except requests.exceptions.ConnectionError:
+            return ChannelResult(False, "send connection failed")
         except Exception as exc:
-            return ChannelResult(False, str(exc))
+            return ChannelResult(False, f"send failed: {type(exc).__name__}")
 
     def _result_from_telegram(self, response) -> ChannelResult:
         try:

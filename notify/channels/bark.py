@@ -89,8 +89,12 @@ class BarkNotifier(BaseNotifier):
                 timeout=timeout,
             )
             return self._result_from_response(response)
+        except requests.exceptions.Timeout:
+            return ChannelResult(False, "send timeout")
+        except requests.exceptions.ConnectionError:
+            return ChannelResult(False, "send connection failed")
         except Exception as exc:
-            return ChannelResult(False, str(exc))
+            return ChannelResult(False, f"send failed: {type(exc).__name__}")
 
     def _build_url(self, server: str, parts: list[str]) -> str:
         encoded_parts = [quote(str(part), safe="") for part in parts]

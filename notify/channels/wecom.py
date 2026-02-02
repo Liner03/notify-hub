@@ -105,8 +105,12 @@ class WeComNotifier(BaseNotifier):
         try:
             response = requests.post(send_url, json=message, timeout=timeout)
             return self._result_from_wecom(response)
+        except requests.exceptions.Timeout:
+            return ChannelResult(False, "send timeout")
+        except requests.exceptions.ConnectionError:
+            return ChannelResult(False, "send connection failed")
         except Exception as exc:
-            return ChannelResult(False, str(exc))
+            return ChannelResult(False, f"send failed: {type(exc).__name__}")
 
     def _build_message_body(self, msgtype: str, content: str):
         if msgtype in {"text", "markdown", "markdown_v2"}:
@@ -189,8 +193,12 @@ class WeComNotifier(BaseNotifier):
                 params={"corpid": corpid, "corpsecret": corpsecret},
                 timeout=timeout,
             )
+        except requests.exceptions.Timeout:
+            return ChannelResult(False, "get token timeout")
+        except requests.exceptions.ConnectionError:
+            return ChannelResult(False, "get token connection failed")
         except Exception as exc:
-            return ChannelResult(False, str(exc))
+            return ChannelResult(False, f"get token failed: {type(exc).__name__}")
 
         if response.status_code >= 400:
             return self._result_from_response(response)
